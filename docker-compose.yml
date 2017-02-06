@@ -1,0 +1,30 @@
+version: '2'
+services:
+  mongo:
+    image: mongo
+  rabbitmq:
+    image: rabbitmq
+  worker:
+    build: .
+    image: celerybeat-mongo
+    volumes:
+      - .:/opt/celerybeat-mongo
+    depends_on:
+      - rabbitmq
+      - mongo
+    command: celery worker -A app --workdir tests/ -c 1 -l INFO
+  scheduler:
+    build: .
+    image: celerybeat-mongo
+    volumes:
+      - .:/opt/celerybeat-mongo
+    depends_on:
+      - rabbitmq
+      - mongo
+    command: celery beat -A app --workdir=tests/ -S app.TestMongoScheduler -l INFO
+  debug:
+    build: .
+    image: celerybeat-mongo
+    volumes:
+      - .:/opt/celerybeat-mongo
+    command: echo 'hi'
